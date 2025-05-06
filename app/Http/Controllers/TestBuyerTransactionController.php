@@ -27,4 +27,13 @@ class TestBuyerTransactionController extends Controller
             return 'Buyer 加分失敗，已回滾!';
         }
     }
+
+    public function failtest()
+    {
+        try {
+            $this->buyerService->addPointsAndFail(1, 10);
+        } catch (\Exception $e) {
+            return 'Buyer 加分失敗，已回滾!';
+        }
+    }
 }

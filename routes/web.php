@@ -13,3 +13,6 @@ Route::get('/', function () {
 // ★ 這是重點！加上這兩行
 Route::get('/buyer-transaction-success', [TestBuyerTransactionController::class, 'success']);
 Route::get('/buyer-transaction-fail', [TestBuyerTransactionController::class, 'fail']);
+
+
+Route::get('/buyertest-transactiontrst-fail', [TestBuyerTransactionController::class, 'failtest']);
