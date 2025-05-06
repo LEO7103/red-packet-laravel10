@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>紅包 API 測試頁面</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    input, button { padding: 5px; margin: 5px 0; }
+    #response, #autoGrabLog { white-space: pre-wrap; background: #f0f0f0; padding: 10px; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>紅包 API 測試介面</h1>
+
+  <h2>建立紅包</h2>
+  <input type="number" id="amount" placeholder="金額 (例如 10000)">
+  <input type="number" id="count" placeholder="份數 (例如 100)">
+  <button onclick="createRedPacket()">建立紅包</button>
+  <div>建立後紅包 ID：<span id="packetId">無</span></div>
+
+  <h2>搶紅包</h2>
+  <input type="number" id="grabUserId" placeholder="使用者 ID (例如 101)">
+  <input type="number" id="grabPacketId" placeholder="紅包 ID">
+  <button onclick="grabRedPacket()">搶紅包</button>
+
+  <h2>查排行榜</h2>
+  <input type="number" id="rankPacketId" placeholder="紅包 ID">
+  <button onclick="getRank()">查排行榜</button>
+
+  <h2>查剩餘</h2>
+  <input type="number" id="leftPacketId" placeholder="紅包 ID">
+  <button onclick="getLeft()">查剩餘</button>
+
+  <h2>自動模擬 100 人搶紅包</h2>
+  <input type="number" id="autoGrabPacketId" placeholder="紅包 ID">
+  <button onclick="autoGrab()">開始模擬</button>
+  <div id="autoGrabLog"></div>
+
+  <h2>API 回應</h2>
+  <div id="response"></div>
+
+  <script>
+
+    const baseUrl = 'http://localhost:8000/api';
+
+    async function createRedPacket() {
+      const amount = document.getElementById('amount').value;
+      const count = document.getElementById('count').value;
+      const res = await fetch(`${baseUrl}/red-packet`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `amount=${amount}&count=${count}`
+      });
+      const data = await res.json();
+      document.getElementById('packetId').innerText = data.id ?? '錯誤';
+      showResponse(data);
+    }
+
+    async function grabRedPacket() {
+      const userId = document.getElementById('grabUserId').value;
+      const packetId = document.getElementById('grabPacketId').value;
+      const res = await fetch(`${baseUrl}/red-packet/${packetId}/grab`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `user_id=${userId}`
+      });
+      const data = await res.json();
+      showResponse(data);
+    }
+
+    async function getRank() {
+      const packetId = document.getElementById('rankPacketId').value;
+      const res = await fetch(`${baseUrl}/red-packet/${packetId}/rank`);
+      const data = await res.json();
+      showResponse(data);
+    }
+
+    async function getLeft() {
+      const packetId = document.getElementById('leftPacketId').value;
+      const res = await fetch(`${baseUrl}/red-packet/${packetId}/left`);
+      const data = await res.json();
+      showResponse(data);
+    }
+
+    // async function autoGrab() {
+    //   const packetId = document.getElementById('autoGrabPacketId').value;
+    //   const logEl = document.getElementById('autoGrabLog');
+    //   logEl.innerText = '開始模擬...\n';
+
+    //   for (let i = 1; i <= 100; i++) {
+    //     const res = await fetch(`${baseUrl}/red-packet/${packetId}/grab`, {
+    //       method: 'POST',
+    //       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    //       body: `user_id=${i}`
+    //     });
+    //     const data = await res.json();
+    //     const msg = data.amount ? `✅ User ${i} 搶到 ${data.amount}` : `⚠️ User ${i}：${data.message || '未搶到'}`;
+    //     logEl.innerText += msg + '\n';
+    //   }
+    // }
+
+
+    async function autoGrab() {
+    const packetId = document.getElementById('autoGrabPacketId').value;
+    const logEl = document.getElementById('autoGrabLog');
+    logEl.innerText = '開始模擬...\n';
+
+    for (let i = 1; i <= 100; i++) {
+      try {
+        const res = await fetch(`${baseUrl}/red-packet/${packetId}/grab`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: `user_id=${i}`
+        });
+
+        const data = await res.json();
+        const msg = data.amount
+          ? `✅ User ${i} 搶到 ${data.amount}`
+          : `⚠️ User ${i}：${data.message || '未搶到'}`;
+
+        logEl.innerText += msg + '\n';
+      } catch (err) {
+        logEl.innerText += `❌ User ${i} 發生錯誤：${err.message}\n`;
+      }
+    }
+
+    logEl.innerText += '✅ 模擬結束！';
+  }
+
+    function showResponse(data) {
+      document.getElementById('response').innerText = JSON.stringify(data, null, 2);
+    }
+  </script>
+
+
+
+
+  
+</body>
+</html>
